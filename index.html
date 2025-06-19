@@ -40,7 +40,56 @@
             const [matches, setMatches] = useState([]);
 
             // Initialize with sample data
-            useEffect(() => {
+            
+const LadderSettingsView = () => {
+    const [settings, setSettings] = React.useState({
+        challengeWindowDays: 7,
+        maxPendingChallenges: 3,
+        allowBackToBackChallenges: false,
+        challengeRangeLimit: 5,
+        responseTimeLimit: 48,
+        allowOneSetMatches: false,
+        winSetAt: 6,
+        winSetBy: 2,
+        defaultMatchFormat: 'best-of-3',
+        allowTenPointTiebreak: true,
+        pointsAllPlayers: 2,
+        pointsWinSet: 1,
+        pointsWinMatch: 5,
+        pointsThreeSets: 2,
+        pointsStraightSets: 1,
+        showUSTARatings: true,
+        allowLocationSpecify: false,
+        seasonLength: 12,
+        minimumMatchesForPlayoffs: 4,
+        playoffBracketSize: 16,
+        adminApprovalRequired: false,
+        allowPlayerWithdrawal: true,
+        autoRemoveInactivePlayers: true,
+        inactivePlayerWeeks: 8
+    });
+
+    const [activeTab, setActiveTab] = React.useState('challenge-rules');
+
+    const updateSetting = (key, value) => {
+        setSettings(prev => ({ ...prev, [key]: value }));
+    };
+
+    const saveSettings = () => {
+        setSelectedLadder(prev => ({ ...prev, settings: settings }));
+        alert('Settings saved successfully!');
+        setCurrentView('admin-dashboard');
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Render tabs and settings UI here, like in the original code */}
+        </div>
+    );
+};
+
+
+useEffect(() => {
                 const sampleLadder = {
                     id: 1,
                     name: "Men's Challenge Ladder",
