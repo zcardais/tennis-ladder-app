@@ -1,21 +1,21 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tennis Ladder Pro</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tennis Ladder Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
+<div id="root"></div>
+<script type="text/babel">
         const { useState, useEffect } = React;
         
         // Simple icon components
@@ -29,6 +29,989 @@
         const Clock = () => <span style={{fontSize: '24px'}}>⏰</span>;
         const Plus = () => <span style={{fontSize: '20px'}}>➕</span>;
         const Calendar = () => <span style={{fontSize: '24px'}}>📅</span>;
+
+        const LadderSettingsView = ({ selectedLadder, setSelectedLadder, setCurrentView }) => {
+            const [settings, setSettings] = useState({
+                // Challenge Rules
+                challengeWindowDays: 7,
+                maxPendingChallenges: 3,
+                allowBackToBackChallenges: false,
+                challengeRangeLimit: 5,
+                responseTimeLimit: 48,
+                
+                // Match Rules
+                allowOneSetMatches: false,
+                winSetAt: 6,
+                winSetBy: 2,
+                defaultMatchFormat: 'best-of-3',
+                allowTenPointTiebreak: true,
+                
+                // Scoring System
+                pointsAllPlayers: 2,
+                pointsWinSet: 1,
+                pointsWinMatch: 5,
+                pointsThreeSets: 2,
+                pointsStraightSets: 1,
+                
+                // Ladder Behavior
+                showUSTARatings: true,
+                allowLocationSpecify: false,
+                seasonLength: 12,
+                minimumMatchesForPlayoffs: 4,
+                playoffBracketSize: 16
+            });
+
+            const [activeTab, setActiveTab] = useState('challenge-rules');
+
+            // Load existing settings when component mounts
+            useEffect(() => {
+                if (selectedLadder?.settings) {
+                    setSettings(prev => ({
+                        ...prev,
+                        ...selectedLadder.settings
+                    }));
+                }
+            }, [selectedLadder]);
+
+            const updateSetting = (key, value) => {
+                setSettings(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+            };
+
+            const saveSettings = () => {
+                setSelectedLadder(prev => ({
+                    ...prev,
+                    settings: settings
+                }));
+                
+                alert('Settings saved successfully!');
+                setCurrentView('admin-dashboard');
+            };
+
+            const TabButton = ({ id, label, isActive, onClick }) => (
+                <button
+                    onClick={onClick}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                        isActive 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    {label}
+                </button>
+            );
+
+            const SettingRow = ({ label, description, children }) => (
+                <div className="py-4 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-4">
+                            <label className="text-sm font-medium text-gray-900">{label}</label>
+                            {description && (
+                                <p className="text-sm text-gray-500 mt-1">{description}</p>
+                            )}
+                        </div>
+                        <div className="flex-shrink-0">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="bg-white shadow-sm border-b">
+                        <div className="px-4 py-3 flex justify-between items-center">
+                            <h1 className="text-xl font-bold text-gray-900">Ladder Settings</h1>
+                            <button
+                                onClick={() => setCurrentView('admin-dashboard')}
+                                className="text-gray-600 hover:text-gray-800"
+                            >
+                                Back
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="p-4 max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow">
+                            {/* Tab Navigation */}
+                            <div className="p-6 border-b border-gray-200">
+                                <div className="flex flex-wrap gap-2">
+                                    <TabButton
+                                        id="challenge-rules"
+                                        label="Challenge Rules"
+                                        isActive={activeTab === 'challenge-rules'}
+                                        onClick={() => setActiveTab('challenge-rules')}
+                                    />
+                                    <TabButton
+                                        id="match-rules"
+                                        label="Match Format"
+                                        isActive={activeTab === 'match-rules'}
+                                        onClick={() => setActiveTab('match-rules')}
+                                    />
+                                    <TabButton
+                                        id="points-system"
+                                        label="Points System"
+                                        isActive={activeTab === 'points-system'}
+                                        onClick={() => setActiveTab('points-system')}
+                                    />
+                                    <TabButton
+                                        id="ladder-behavior"
+                                        label="Ladder Behavior"
+                                        isActive={activeTab === 'ladder-behavior'}
+                                        onClick={() => setActiveTab('ladder-behavior')}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Tab Content */}
+                            <div className="p-6">
+                                {activeTab === 'challenge-rules' && (
+                                    <div className="space-y-0">
+                                        <SettingRow
+                                            label="Challenge Window"
+                                            description="How many days ahead can players schedule challenges?"
+                                        >
+                                            <select
+                                                value={settings.challengeWindowDays}
+                                                onChange={(e) => updateSetting('challengeWindowDays', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={3}>3 days</option>
+                                                <option value={7}>7 days</option>
+                                                <option value={14}>14 days</option>
+                                                <option value={21}>21 days</option>
+                                                <option value={30}>30 days</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Challenge Range Limit"
+                                            description="How many spots up the ladder can players challenge?"
+                                        >
+                                            <select
+                                                value={settings.challengeRangeLimit}
+                                                onChange={(e) => updateSetting('challengeRangeLimit', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={3}>3 spots</option>
+                                                <option value={5}>5 spots</option>
+                                                <option value={10}>10 spots</option>
+                                                <option value={999}>Unlimited</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Response Time Limit"
+                                            description="How long do players have to respond to challenges?"
+                                        >
+                                            <select
+                                                value={settings.responseTimeLimit}
+                                                onChange={(e) => updateSetting('responseTimeLimit', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={24}>24 hours</option>
+                                                <option value={48}>48 hours</option>
+                                                <option value={72}>72 hours</option>
+                                                <option value={168}>1 week</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Max Pending Challenges"
+                                            description="Maximum number of pending challenges per player"
+                                        >
+                                            <select
+                                                value={settings.maxPendingChallenges}
+                                                onChange={(e) => updateSetting('maxPendingChallenges', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={1}>1 challenge</option>
+                                                <option value={2}>2 challenges</option>
+                                                <option value={3}>3 challenges</option>
+                                                <option value={5}>5 challenges</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Back-to-Back Challenges"
+                                            description="Allow players to challenge the same opponent consecutively?"
+                                        >
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.allowBackToBackChallenges}
+                                                    onChange={(e) => updateSetting('allowBackToBackChallenges', e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                                            </label>
+                                        </SettingRow>
+                                    </div>
+                                )}
+
+                                {activeTab === 'match-rules' && (
+                                    <div className="space-y-0">
+                                        <SettingRow
+                                            label="Default Match Format"
+                                            description="Standard format for ladder matches"
+                                        >
+                                            <select
+                                                value={settings.defaultMatchFormat}
+                                                onChange={(e) => updateSetting('defaultMatchFormat', e.target.value)}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value="best-of-3">Best of 3 sets</option>
+                                                <option value="best-of-5">Best of 5 sets</option>
+                                                <option value="pro-set">Pro set (first to 8)</option>
+                                                <option value="one-set">One set matches</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Allow One Set Matches"
+                                            description="Permit players to play abbreviated one-set matches"
+                                        >
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.allowOneSetMatches}
+                                                    onChange={(e) => updateSetting('allowOneSetMatches', e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                                            </label>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Win Set At"
+                                            description="Games required to win a set"
+                                        >
+                                            <select
+                                                value={settings.winSetAt}
+                                                onChange={(e) => updateSetting('winSetAt', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={6}>6 games</option>
+                                                <option value={8}>8 games (pro set)</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="10-Point Tiebreak for Deciding Set"
+                                            description="Use 10-point tiebreak instead of full third set"
+                                        >
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.allowTenPointTiebreak}
+                                                    onChange={(e) => updateSetting('allowTenPointTiebreak', e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                                            </label>
+                                        </SettingRow>
+                                    </div>
+                                )}
+
+                                {activeTab === 'points-system' && (
+                                    <div className="space-y-0">
+                                        <SettingRow
+                                            label="Points for All Players"
+                                            description="Base points awarded to all players in a match"
+                                        >
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                value={settings.pointsAllPlayers}
+                                                onChange={(e) => updateSetting('pointsAllPlayers', parseInt(e.target.value))}
+                                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Points for Winning a Set"
+                                            description="Additional points for each set won"
+                                        >
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                value={settings.pointsWinSet}
+                                                onChange={(e) => updateSetting('pointsWinSet', parseInt(e.target.value))}
+                                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Points for Winning Match"
+                                            description="Bonus points for winning the entire match"
+                                        >
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="20"
+                                                value={settings.pointsWinMatch}
+                                                onChange={(e) => updateSetting('pointsWinMatch', parseInt(e.target.value))}
+                                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </SettingRow>
+
+                                        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                            <h4 className="text-sm font-medium text-blue-900 mb-2">Points Example:</h4>
+                                            <p className="text-sm text-blue-700">
+                                                Player wins 6-4, 6-2: Base ({settings.pointsAllPlayers}) + 2 sets ({settings.pointsWinSet * 2}) + 
+                                                Match win ({settings.pointsWinMatch}) = {' '}
+                                                <strong>{settings.pointsAllPlayers + (settings.pointsWinSet * 2) + settings.pointsWinMatch} points</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'ladder-behavior' && (
+                                    <div className="space-y-0">
+                                        <SettingRow
+                                            label="Season Length"
+                                            description="Duration of the ladder season in weeks"
+                                        >
+                                            <select
+                                                value={settings.seasonLength}
+                                                onChange={(e) => updateSetting('seasonLength', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={8}>8 weeks</option>
+                                                <option value={10}>10 weeks</option>
+                                                <option value={12}>12 weeks</option>
+                                                <option value={16}>16 weeks</option>
+                                                <option value={20}>20 weeks</option>
+                                                <option value={999}>Ongoing</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Minimum Matches for Playoffs"
+                                            description="Required matches to qualify for playoff tournament"
+                                        >
+                                            <select
+                                                value={settings.minimumMatchesForPlayoffs}
+                                                onChange={(e) => updateSetting('minimumMatchesForPlayoffs', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={2}>2 matches</option>
+                                                <option value={3}>3 matches</option>
+                                                <option value={4}>4 matches</option>
+                                                <option value={5}>5 matches</option>
+                                                <option value={6}>6 matches</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Playoff Bracket Size"
+                                            description="Number of players in main playoff bracket"
+                                        >
+                                            <select
+                                                value={settings.playoffBracketSize}
+                                                onChange={(e) => updateSetting('playoffBracketSize', parseInt(e.target.value))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            >
+                                                <option value={8}>8 players</option>
+                                                <option value={16}>16 players</option>
+                                                <option value={32}>32 players</option>
+                                            </select>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Show USTA Ratings"
+                                            description="Display player USTA ratings on challenge pages"
+                                        >
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.showUSTARatings}
+                                                    onChange={(e) => updateSetting('showUSTARatings', e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Show</span>
+                                            </label>
+                                        </SettingRow>
+
+                                        <SettingRow
+                                            label="Allow Location Specification"
+                                            description="Let players specify court location for challenges"
+                                        >
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.allowLocationSpecify}
+                                                    onChange={(e) => updateSetting('allowLocationSpecify', e.target.checked)}
+                                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                                            </label>
+                                        </SettingRow>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => setCurrentView('admin-dashboard')}
+                                        className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={saveSettings}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                    >
+                                        Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const LadderSettingsView = ({ selectedLadder, setSelectedLadder, setCurrentView }) => {
+            const [settings, setSettings] = useState({
+                // Challenge Rules
+                challengeWindowDays: 7,
+                maxPendingChallenges: 3,
+                allowBackToBackChallenges: false,
+                challengeRangeLimit: 5,
+                responseTimeLimit: 48,
+                
+                // Match Rules
+                allowOneSetMatches: false,
+                winSetAt: 6,
+                winSetBy: 2,
+                defaultMatchFormat: 'best-of-3',
+                allowTenPointTiebreak: true,
+                
+                // Scoring System
+                pointsAllPlayers: 2,
+                pointsWinSet: 1,
+                pointsWinMatch: 5,
+                pointsThreeSets: 2,
+                pointsStraightSets: 1,
+                
+                // Ladder Behavior
+                showUSTARatings: true,
+                allowLocationSpecify: false,
+                seasonLength: 12,
+                minimumMatchesForPlayoffs: 4,
+                playoffBracketSize: 16,
+                
+                // Administrative
+                adminApprovalRequired: false,
+                allowPlayerWithdrawal: true,
+                autoRemoveInactivePlayers: true,
+                inactivePlayerWeeks: 8
+            });
+
+            const [activeTab, setActiveTab] = useState('challenge-rules');
+
+            // Load existing settings on mount
+            useEffect(() => {
+                if (selectedLadder?.settings) {
+                    setSettings(prev => ({
+                        ...prev,
+                        ...selectedLadder.settings
+                    }));
+                }
+            }, [selectedLadder]);
+
+            const updateSetting = (key, value) => {
+                setSettings(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+            };
+
+            const saveSettings = () => {
+                // Update the ladder settings
+                setSelectedLadder(prev => ({
+                    ...prev,
+                    settings: settings
+                }));
+                
+                alert('Settings saved successfully!');
+                setCurrentView('admin-dashboard');
+            };
+
+            const TabButton = ({ id, label, isActive, onClick }) => (
+                <button
+                    onClick={onClick}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                        isActive 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    {label}
+                </button>
+            );
+
+            const SettingRow = ({ label, description, children }) => (
+                <div className="py-4 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-4">
+                            <label className="text-sm font-medium text-gray-900">{label}</label>
+                            {description && (
+                                <p className="text-sm text-gray-500 mt-1">{description}</p>
+                            )}
+                        </div>
+                        <div className="flex-shrink-0">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderChallengeRules = () => (
+                <div className="space-y-0">
+                    <SettingRow
+                        label="Challenge Window"
+                        description="How many days ahead can players schedule challenges?"
+                    >
+                        <select
+                            value={settings.challengeWindowDays}
+                            onChange={(e) => updateSetting('challengeWindowDays', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={3}>3 days</option>
+                            <option value={7}>7 days</option>
+                            <option value={14}>14 days</option>
+                            <option value={21}>21 days</option>
+                            <option value={30}>30 days</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Challenge Range Limit"
+                        description="How many spots up the ladder can players challenge?"
+                    >
+                        <select
+                            value={settings.challengeRangeLimit}
+                            onChange={(e) => updateSetting('challengeRangeLimit', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={3}>3 spots</option>
+                            <option value={5}>5 spots</option>
+                            <option value={10}>10 spots</option>
+                            <option value={999}>Unlimited</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Response Time Limit"
+                        description="How long do players have to respond to challenges?"
+                    >
+                        <select
+                            value={settings.responseTimeLimit}
+                            onChange={(e) => updateSetting('responseTimeLimit', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={24}>24 hours</option>
+                            <option value={48}>48 hours</option>
+                            <option value={72}>72 hours</option>
+                            <option value={168}>1 week</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Max Pending Challenges"
+                        description="Maximum number of pending challenges per player"
+                    >
+                        <select
+                            value={settings.maxPendingChallenges}
+                            onChange={(e) => updateSetting('maxPendingChallenges', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={1}>1 challenge</option>
+                            <option value={2}>2 challenges</option>
+                            <option value={3}>3 challenges</option>
+                            <option value={5}>5 challenges</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Back-to-Back Challenges"
+                        description="Allow players to challenge the same opponent consecutively?"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.allowBackToBackChallenges}
+                                onChange={(e) => updateSetting('allowBackToBackChallenges', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Allow</span>
+                        </label>
+                    </SettingRow>
+                </div>
+            );
+
+            const renderMatchRules = () => (
+                <div className="space-y-0">
+                    <SettingRow
+                        label="Default Match Format"
+                        description="Standard format for ladder matches"
+                    >
+                        <select
+                            value={settings.defaultMatchFormat}
+                            onChange={(e) => updateSetting('defaultMatchFormat', e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value="best-of-3">Best of 3 sets</option>
+                            <option value="best-of-5">Best of 5 sets</option>
+                            <option value="pro-set">Pro set (first to 8)</option>
+                            <option value="one-set">One set matches</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Allow One Set Matches"
+                        description="Permit players to play abbreviated one-set matches"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.allowOneSetMatches}
+                                onChange={(e) => updateSetting('allowOneSetMatches', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Allow</span>
+                        </label>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Win Set At"
+                        description="Games required to win a set"
+                    >
+                        <select
+                            value={settings.winSetAt}
+                            onChange={(e) => updateSetting('winSetAt', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={6}>6 games</option>
+                            <option value={8}>8 games (pro set)</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Win Set By"
+                        description="Minimum margin to win a set"
+                    >
+                        <select
+                            value={settings.winSetBy}
+                            onChange={(e) => updateSetting('winSetBy', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={1}>1 game</option>
+                            <option value={2}>2 games</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="10-Point Tiebreak for Deciding Set"
+                        description="Use 10-point tiebreak instead of full third set"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.allowTenPointTiebreak}
+                                onChange={(e) => updateSetting('allowTenPointTiebreak', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Allow</span>
+                        </label>
+                    </SettingRow>
+                </div>
+            );
+
+            const renderPointsSystem = () => (
+                <div className="space-y-0">
+                    <SettingRow
+                        label="Points for All Players"
+                        description="Base points awarded to all players in a match"
+                    >
+                        <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={settings.pointsAllPlayers}
+                            onChange={(e) => updateSetting('pointsAllPlayers', parseInt(e.target.value))}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                        />
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Points for Winning a Set"
+                        description="Additional points for each set won"
+                    >
+                        <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={settings.pointsWinSet}
+                            onChange={(e) => updateSetting('pointsWinSet', parseInt(e.target.value))}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                        />
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Points for Winning Match"
+                        description="Bonus points for winning the entire match"
+                    >
+                        <input
+                            type="number"
+                            min="0"
+                            max="20"
+                            value={settings.pointsWinMatch}
+                            onChange={(e) => updateSetting('pointsWinMatch', parseInt(e.target.value))}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                        />
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Bonus for Three-Set Match"
+                        description="Extra points for playing a full three-set match"
+                    >
+                        <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={settings.pointsThreeSets}
+                            onChange={(e) => updateSetting('pointsThreeSets', parseInt(e.target.value))}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                        />
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Bonus for Straight Sets Win"
+                        description="Extra points for winning in straight sets"
+                    >
+                        <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={settings.pointsStraightSets}
+                            onChange={(e) => updateSetting('pointsStraightSets', parseInt(e.target.value))}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                        />
+                    </SettingRow>
+
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-900 mb-2">Points Example:</h4>
+                        <p className="text-sm text-blue-700">
+                            Player wins 6-4, 6-2: Base ({settings.pointsAllPlayers}) + 2 sets ({settings.pointsWinSet * 2}) + 
+                            Match win ({settings.pointsWinMatch}) + Straight sets ({settings.pointsStraightSets}) = {' '}
+                            <strong>{settings.pointsAllPlayers + (settings.pointsWinSet * 2) + settings.pointsWinMatch + settings.pointsStraightSets} points</strong>
+                        </p>
+                    </div>
+                </div>
+            );
+
+            const renderLadderBehavior = () => (
+                <div className="space-y-0">
+                    <SettingRow
+                        label="Season Length"
+                        description="Duration of the ladder season in weeks"
+                    >
+                        <select
+                            value={settings.seasonLength}
+                            onChange={(e) => updateSetting('seasonLength', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={8}>8 weeks</option>
+                            <option value={10}>10 weeks</option>
+                            <option value={12}>12 weeks</option>
+                            <option value={16}>16 weeks</option>
+                            <option value={20}>20 weeks</option>
+                            <option value={999}>Ongoing</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Minimum Matches for Playoffs"
+                        description="Required matches to qualify for playoff tournament"
+                    >
+                        <select
+                            value={settings.minimumMatchesForPlayoffs}
+                            onChange={(e) => updateSetting('minimumMatchesForPlayoffs', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={2}>2 matches</option>
+                            <option value={3}>3 matches</option>
+                            <option value={4}>4 matches</option>
+                            <option value={5}>5 matches</option>
+                            <option value={6}>6 matches</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Playoff Bracket Size"
+                        description="Number of players in main playoff bracket"
+                    >
+                        <select
+                            value={settings.playoffBracketSize}
+                            onChange={(e) => updateSetting('playoffBracketSize', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        >
+                            <option value={8}>8 players</option>
+                            <option value={16}>16 players</option>
+                            <option value={32}>32 players</option>
+                        </select>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Show USTA Ratings"
+                        description="Display player USTA ratings on challenge pages"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.showUSTARatings}
+                                onChange={(e) => updateSetting('showUSTARatings', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Show</span>
+                        </label>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Allow Location Specification"
+                        description="Let players specify court location for challenges"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.allowLocationSpecify}
+                                onChange={(e) => updateSetting('allowLocationSpecify', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Allow</span>
+                        </label>
+                    </SettingRow>
+
+                    <SettingRow
+                        label="Auto-Remove Inactive Players"
+                        description="Automatically remove players who haven't played recently"
+                    >
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={settings.autoRemoveInactivePlayers}
+                                onChange={(e) => updateSetting('autoRemoveInactivePlayers', e.target.checked)}
+                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Enable</span>
+                        </label>
+                    </SettingRow>
+
+                    {settings.autoRemoveInactivePlayers && (
+                        <SettingRow
+                            label="Inactive Player Threshold"
+                            description="Weeks of inactivity before auto-removal"
+                        >
+                            <select
+                                value={settings.inactivePlayerWeeks}
+                                onChange={(e) => updateSetting('inactivePlayerWeeks', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={4}>4 weeks</option>
+                                <option value={6}>6 weeks</option>
+                                <option value={8}>8 weeks</option>
+                                <option value={12}>12 weeks</option>
+                            </select>
+                        </SettingRow>
+                    )}
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="bg-white shadow-sm border-b">
+                        <div className="px-4 py-3 flex justify-between items-center">
+                            <h1 className="text-xl font-bold text-gray-900">Ladder Settings</h1>
+                            <button
+                                onClick={() => setCurrentView('admin-dashboard')}
+                                className="text-gray-600 hover:text-gray-800"
+                            >
+                                Back
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="p-4 max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow">
+                            {/* Tab Navigation */}
+                            <div className="p-6 border-b border-gray-200">
+                                <div className="flex flex-wrap gap-2">
+                                    <TabButton
+                                        id="challenge-rules"
+                                        label="Challenge Rules"
+                                        isActive={activeTab === 'challenge-rules'}
+                                        onClick={() => setActiveTab('challenge-rules')}
+                                    />
+                                    <TabButton
+                                        id="match-rules"
+                                        label="Match Format"
+                                        isActive={activeTab === 'match-rules'}
+                                        onClick={() => setActiveTab('match-rules')}
+                                    />
+                                    <TabButton
+                                        id="points-system"
+                                        label="Points System"
+                                        isActive={activeTab === 'points-system'}
+                                        onClick={() => setActiveTab('points-system')}
+                                    />
+                                    <TabButton
+                                        id="ladder-behavior"
+                                        label="Ladder Behavior"
+                                        isActive={activeTab === 'ladder-behavior'}
+                                        onClick={() => setActiveTab('ladder-behavior')}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Tab Content */}
+                            <div className="p-6">
+                                {activeTab === 'challenge-rules' && renderChallengeRules()}
+                                {activeTab === 'match-rules' && renderMatchRules()}
+                                {activeTab === 'points-system' && renderPointsSystem()}
+                                {activeTab === 'ladder-behavior' && renderLadderBehavior()}
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => setCurrentView('admin-dashboard')}
+                                        className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={saveSettings}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                    >
+                                        Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         const TennisLadderApp = () => {
             const [currentView, setCurrentView] = useState('login');
@@ -65,6 +1048,530 @@
                         pointsStraightSets: 1
                     }
                 };
+
+            const LadderSettingsView = () => {
+                const [settings, setSettings] = useState({
+                    // Challenge Rules
+                    challengeWindowDays: 7,
+                    maxPendingChallenges: 3,
+                    allowBackToBackChallenges: false,
+                    challengeRangeLimit: 5,
+                    responseTimeLimit: 48,
+                    
+                    // Match Rules
+                    allowOneSetMatches: false,
+                    winSetAt: 6,
+                    winSetBy: 2,
+                    defaultMatchFormat: 'best-of-3',
+                    allowTenPointTiebreak: true,
+                    
+                    // Scoring System
+                    pointsAllPlayers: 2,
+                    pointsWinSet: 1,
+                    pointsWinMatch: 5,
+                    pointsThreeSets: 2,
+                    pointsStraightSets: 1,
+                    
+                    // Ladder Behavior
+                    showUSTARatings: true,
+                    allowLocationSpecify: false,
+                    seasonLength: 12,
+                    minimumMatchesForPlayoffs: 4,
+                    playoffBracketSize: 16,
+                    
+                    // Administrative
+                    adminApprovalRequired: false,
+                    allowPlayerWithdrawal: true,
+                    autoRemoveInactivePlayers: true,
+                    inactivePlayerWeeks: 8
+                });
+
+                const [activeTab, setActiveTab] = useState('challenge-rules');
+
+                const updateSetting = (key, value) => {
+                    setSettings(prev => ({
+                        ...prev,
+                        [key]: value
+                    }));
+                };
+
+                const saveSettings = () => {
+                    // Update the ladder settings
+                    setSelectedLadder(prev => ({
+                        ...prev,
+                        settings: settings
+                    }));
+                    
+                    alert('Settings saved successfully!');
+                    setCurrentView('admin-dashboard');
+                };
+
+                const TabButton = ({ id, label, isActive, onClick }) => (
+                    <button
+                        onClick={onClick}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                            isActive 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        {label}
+                    </button>
+                );
+
+                const SettingRow = ({ label, description, children }) => (
+                    <div className="py-4 border-b border-gray-200 last:border-b-0">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1 pr-4">
+                                <label className="text-sm font-medium text-gray-900">{label}</label>
+                                {description && (
+                                    <p className="text-sm text-gray-500 mt-1">{description}</p>
+                                )}
+                            </div>
+                            <div className="flex-shrink-0">
+                                {children}
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                const renderChallengeRules = () => (
+                    <div className="space-y-0">
+                        <SettingRow
+                            label="Challenge Window"
+                            description="How many days ahead can players schedule challenges?"
+                        >
+                            <select
+                                value={settings.challengeWindowDays}
+                                onChange={(e) => updateSetting('challengeWindowDays', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={3}>3 days</option>
+                                <option value={7}>7 days</option>
+                                <option value={14}>14 days</option>
+                                <option value={21}>21 days</option>
+                                <option value={30}>30 days</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Challenge Range Limit"
+                            description="How many spots up the ladder can players challenge?"
+                        >
+                            <select
+                                value={settings.challengeRangeLimit}
+                                onChange={(e) => updateSetting('challengeRangeLimit', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={3}>3 spots</option>
+                                <option value={5}>5 spots</option>
+                                <option value={10}>10 spots</option>
+                                <option value={999}>Unlimited</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Response Time Limit"
+                            description="How long do players have to respond to challenges?"
+                        >
+                            <select
+                                value={settings.responseTimeLimit}
+                                onChange={(e) => updateSetting('responseTimeLimit', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={24}>24 hours</option>
+                                <option value={48}>48 hours</option>
+                                <option value={72}>72 hours</option>
+                                <option value={168}>1 week</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Max Pending Challenges"
+                            description="Maximum number of pending challenges per player"
+                        >
+                            <select
+                                value={settings.maxPendingChallenges}
+                                onChange={(e) => updateSetting('maxPendingChallenges', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={1}>1 challenge</option>
+                                <option value={2}>2 challenges</option>
+                                <option value={3}>3 challenges</option>
+                                <option value={5}>5 challenges</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Back-to-Back Challenges"
+                            description="Allow players to challenge the same opponent consecutively?"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.allowBackToBackChallenges}
+                                    onChange={(e) => updateSetting('allowBackToBackChallenges', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                            </label>
+                        </SettingRow>
+                    </div>
+                );
+
+                const renderMatchRules = () => (
+                    <div className="space-y-0">
+                        <SettingRow
+                            label="Default Match Format"
+                            description="Standard format for ladder matches"
+                        >
+                            <select
+                                value={settings.defaultMatchFormat}
+                                onChange={(e) => updateSetting('defaultMatchFormat', e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value="best-of-3">Best of 3 sets</option>
+                                <option value="best-of-5">Best of 5 sets</option>
+                                <option value="pro-set">Pro set (first to 8)</option>
+                                <option value="one-set">One set matches</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Allow One Set Matches"
+                            description="Permit players to play abbreviated one-set matches"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.allowOneSetMatches}
+                                    onChange={(e) => updateSetting('allowOneSetMatches', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                            </label>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Win Set At"
+                            description="Games required to win a set"
+                        >
+                            <select
+                                value={settings.winSetAt}
+                                onChange={(e) => updateSetting('winSetAt', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={6}>6 games</option>
+                                <option value={8}>8 games (pro set)</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Win Set By"
+                            description="Minimum margin to win a set"
+                        >
+                            <select
+                                value={settings.winSetBy}
+                                onChange={(e) => updateSetting('winSetBy', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={1}>1 game</option>
+                                <option value={2}>2 games</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="10-Point Tiebreak for Deciding Set"
+                            description="Use 10-point tiebreak instead of full third set"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.allowTenPointTiebreak}
+                                    onChange={(e) => updateSetting('allowTenPointTiebreak', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                            </label>
+                        </SettingRow>
+                    </div>
+                );
+
+                const renderPointsSystem = () => (
+                    <div className="space-y-0">
+                        <SettingRow
+                            label="Points for All Players"
+                            description="Base points awarded to all players in a match"
+                        >
+                            <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                value={settings.pointsAllPlayers}
+                                onChange={(e) => updateSetting('pointsAllPlayers', parseInt(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                            />
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Points for Winning a Set"
+                            description="Additional points for each set won"
+                        >
+                            <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                value={settings.pointsWinSet}
+                                onChange={(e) => updateSetting('pointsWinSet', parseInt(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                            />
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Points for Winning Match"
+                            description="Bonus points for winning the entire match"
+                        >
+                            <input
+                                type="number"
+                                min="0"
+                                max="20"
+                                value={settings.pointsWinMatch}
+                                onChange={(e) => updateSetting('pointsWinMatch', parseInt(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                            />
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Bonus for Three-Set Match"
+                            description="Extra points for playing a full three-set match"
+                        >
+                            <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                value={settings.pointsThreeSets}
+                                onChange={(e) => updateSetting('pointsThreeSets', parseInt(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                            />
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Bonus for Straight Sets Win"
+                            description="Extra points for winning in straight sets"
+                        >
+                            <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                value={settings.pointsStraightSets}
+                                onChange={(e) => updateSetting('pointsStraightSets', parseInt(e.target.value))}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500"
+                            />
+                        </SettingRow>
+
+                        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                            <h4 className="text-sm font-medium text-blue-900 mb-2">Points Example:</h4>
+                            <p className="text-sm text-blue-700">
+                                Player wins 6-4, 6-2: Base ({settings.pointsAllPlayers}) + 2 sets ({settings.pointsWinSet * 2}) + 
+                                Match win ({settings.pointsWinMatch}) + Straight sets ({settings.pointsStraightSets}) = {' '}
+                                <strong>{settings.pointsAllPlayers + (settings.pointsWinSet * 2) + settings.pointsWinMatch + settings.pointsStraightSets} points</strong>
+                            </p>
+                        </div>
+                    </div>
+                );
+
+                const renderLadderBehavior = () => (
+                    <div className="space-y-0">
+                        <SettingRow
+                            label="Season Length"
+                            description="Duration of the ladder season in weeks"
+                        >
+                            <select
+                                value={settings.seasonLength}
+                                onChange={(e) => updateSetting('seasonLength', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={8}>8 weeks</option>
+                                <option value={10}>10 weeks</option>
+                                <option value={12}>12 weeks</option>
+                                <option value={16}>16 weeks</option>
+                                <option value={20}>20 weeks</option>
+                                <option value={999}>Ongoing</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Minimum Matches for Playoffs"
+                            description="Required matches to qualify for playoff tournament"
+                        >
+                            <select
+                                value={settings.minimumMatchesForPlayoffs}
+                                onChange={(e) => updateSetting('minimumMatchesForPlayoffs', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={2}>2 matches</option>
+                                <option value={3}>3 matches</option>
+                                <option value={4}>4 matches</option>
+                                <option value={5}>5 matches</option>
+                                <option value={6}>6 matches</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Playoff Bracket Size"
+                            description="Number of players in main playoff bracket"
+                        >
+                            <select
+                                value={settings.playoffBracketSize}
+                                onChange={(e) => updateSetting('playoffBracketSize', parseInt(e.target.value))}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value={8}>8 players</option>
+                                <option value={16}>16 players</option>
+                                <option value={32}>32 players</option>
+                            </select>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Show USTA Ratings"
+                            description="Display player USTA ratings on challenge pages"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.showUSTARatings}
+                                    onChange={(e) => updateSetting('showUSTARatings', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Show</span>
+                            </label>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Allow Location Specification"
+                            description="Let players specify court location for challenges"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.allowLocationSpecify}
+                                    onChange={(e) => updateSetting('allowLocationSpecify', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Allow</span>
+                            </label>
+                        </SettingRow>
+
+                        <SettingRow
+                            label="Auto-Remove Inactive Players"
+                            description="Automatically remove players who haven't played recently"
+                        >
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.autoRemoveInactivePlayers}
+                                    onChange={(e) => updateSetting('autoRemoveInactivePlayers', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">Enable</span>
+                            </label>
+                        </SettingRow>
+
+                        {settings.autoRemoveInactivePlayers && (
+                            <SettingRow
+                                label="Inactive Player Threshold"
+                                description="Weeks of inactivity before auto-removal"
+                            >
+                                <select
+                                    value={settings.inactivePlayerWeeks}
+                                    onChange={(e) => updateSetting('inactivePlayerWeeks', parseInt(e.target.value))}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option value={4}>4 weeks</option>
+                                    <option value={6}>6 weeks</option>
+                                    <option value={8}>8 weeks</option>
+                                    <option value={12}>12 weeks</option>
+                                </select>
+                            </SettingRow>
+                        )}
+                    </div>
+                );
+
+                return (
+                    <div className="min-h-screen bg-gray-50">
+                        <div className="bg-white shadow-sm border-b">
+                            <div className="px-4 py-3 flex justify-between items-center">
+                                <h1 className="text-xl font-bold text-gray-900">Ladder Settings</h1>
+                                <button
+                                    onClick={() => setCurrentView('admin-dashboard')}
+                                    className="text-gray-600 hover:text-gray-800"
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div className="p-4 max-w-4xl mx-auto">
+                            <div className="bg-white rounded-lg shadow">
+                                {/* Tab Navigation */}
+                                <div className="p-6 border-b border-gray-200">
+                                    <div className="flex flex-wrap gap-2">
+                                        <TabButton
+                                            id="challenge-rules"
+                                            label="Challenge Rules"
+                                            isActive={activeTab === 'challenge-rules'}
+                                            onClick={() => setActiveTab('challenge-rules')}
+                                        />
+                                        <TabButton
+                                            id="match-rules"
+                                            label="Match Format"
+                                            isActive={activeTab === 'match-rules'}
+                                            onClick={() => setActiveTab('match-rules')}
+                                        />
+                                        <TabButton
+                                            id="points-system"
+                                            label="Points System"
+                                            isActive={activeTab === 'points-system'}
+                                            onClick={() => setActiveTab('points-system')}
+                                        />
+                                        <TabButton
+                                            id="ladder-behavior"
+                                            label="Ladder Behavior"
+                                            isActive={activeTab === 'ladder-behavior'}
+                                            onClick={() => setActiveTab('ladder-behavior')}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Tab Content */}
+                                <div className="p-6">
+                                    {activeTab === 'challenge-rules' && renderChallengeRules()}
+                                    {activeTab === 'match-rules' && renderMatchRules()}
+                                    {activeTab === 'points-system' && renderPointsSystem()}
+                                    {activeTab === 'ladder-behavior' && renderLadderBehavior()}
+                                </div>
+
+                                {/* Save Button */}
+                                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                                    <div className="flex justify-end space-x-3">
+                                        <button
+                                            onClick={() => setCurrentView('admin-dashboard')}
+                                            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={saveSettings}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                        >
+                                            Save Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
 
                 const samplePlayers = [
                     { id: 1, name: "John Smith", email: "john@email.com", ranking: 1, points: 85, matches: 6, wins: 5, losses: 1, active: true },
@@ -1274,7 +2781,8 @@
                         </div>
                     </div>
                 </div>
-            );
+                            );
+            };
 
             const renderCurrentView = () => {
                 switch (currentView) {
@@ -1300,6 +2808,12 @@
                         return <ReportScoreView />;
                     case 'match-history':
                         return <MatchHistoryView />;
+                    case 'settings':
+                        return <LadderSettingsView 
+                            selectedLadder={selectedLadder}
+                            setSelectedLadder={setSelectedLadder}
+                            setCurrentView={setCurrentView}
+                        />;
                     default:
                         return <LoginScreen />;
                 }
